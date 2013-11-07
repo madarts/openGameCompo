@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	<title>canvas game</title>
+    
+    <script src="js/mootools-core-1.3-full.js"></script>
+    <script src="js/mootools-more-1.3-full.js"></script>
+    
+    <script>
+		var posPasivos = Array(Array(560,375,"pieza A"), 
+							   Array(560,455,"pieza B"), 
+							   Array(50,45,"pieza B"), 
+							   Array(59,455,"pieza B"));
+							   
+		var posUser = Array(560,455);
+				
+		var viejaPosUserX = 0;
+		var viejaPosUserY = 0;
+		var newPosUserX = 0;
+		var newPosUserY = 0;
+					   
+		window.addEvent('domready', function() {
+			ctx = document.getElementById('canvas').getContext('2d');
+			
+			generarPasibos = Function.from(function(){
+				for(i=0;i<posPasivos.length;i++){
+					ctx.fillStyle = 'rgb(0,0,0)';
+					ctx.beginPath();
+					ctx.arc(posPasivos[i][0],posPasivos[i][1],12,0,Math.PI*2,true);
+					ctx.fill();
+					
+					
+					ctx.beginPath();
+					ctx.lineWidth = 2;
+					ctx.strokeStyle = 'rgb(255,255,255)';
+					ctx.arc(posPasivos[i][0],posPasivos[i][1],12,0,Math.PI*2,true);
+					ctx.stroke();
+				}
+				
+				ctx.fillStyle = 'rgb(50,90,174)';
+				ctx.beginPath();
+				ctx.arc(posUser[0],posUser[1],6,0,Math.PI*2,true);
+				ctx.fill();
+			
+			});
+			
+			recalcUserPos = Function.from(function(){
+				if(newPosUserX > 0 || newPosUserY > 0){
+					if(newPosUserX != posUser[0]){
+						medio1 = newPosUserY-viejaPosUserY;
+						medio2 = newPosUserX- viejaPosUserX;
+						
+						pendiente = medio1 / medio2;
+						
+						if(viejaPosUserX > newPosUserX)
+							nuevaY = pendiente*(posUser[0]-1-newPosUserX)+newPosUserY;
+						else
+							nuevaY = pendiente*(posUser[0]+1-newPosUserX)+newPosUserY;
+							
+						if(viejaPosUserX > newPosUserX)
+							posUser[0] = posUser[0]-1;
+						else
+							posUser[0] = posUser[0]+1;
+						
+						posUser[1] = parseInt(nuevaY);
+						
+					}
+					else{
+						if(newPosUserY != posUser[1]){
+							if(viejaPosUserY > newPosUserY)
+								posUser[1] = posUser[1]-1;
+							else
+								posUser[1] = posUser[1]+1;
+						}
+						else{
+							viejaPosUserX = 0;
+							viejaPosUserY = 0;
+								
+							newPosUserX = 0;
+							newPosUserY = 0;
+						}
+					}
+				}
+			});
+			
+			
+			// Level Load Datas //
+			var loadLevel = Function.from(function(){
+				ctx.clearRect (0,0, 1000,650);//limpiamos pantalla
+
+				generarPasibos();
+				recalcUserPos();
+			}).periodical(1);	
+			
+			
+			
+			
+			$('canvas').addEvent('click', function(event){
+				userX = event.page.x - event.target.getPosition().x;
+				userY = event.page.y - event.target.getPosition().y;
+				
+				if(newPosUserX == 0 && newPosUserY == 0){
+					for(i=0;i<posPasivos.length;i++){
+						if(posPasivos[i][0]+8 > userX && posPasivos[i][0]-8 < userX && posPasivos[i][1]+8 > userY && posPasivos[i][1]-8 < userY){
+							viejaPosUserX = posUser[0];
+							viejaPosUserY = posUser[1];
+		
+							newPosUserX = posPasivos[i][0];
+							newPosUserY = posPasivos[i][1];
+						}
+					}
+				}
+			});
+	
+		});
+    </script>
+    
+    <style>
+		canvas {
+			background: #000;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body>
+
+<center>
+	<canvas id="canvas" width="1000" height="650"></canvas>
+</center>
+</body>
+</html>
